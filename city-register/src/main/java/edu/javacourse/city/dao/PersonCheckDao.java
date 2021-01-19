@@ -4,32 +4,39 @@ import edu.javacourse.city.domain.PersonRequest;
 import edu.javacourse.city.domain.PersonResponse;
 import edu.javacourse.city.exception.PersonCheckException;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class PersonCheckDao
 {
     private static final String SQL_REQUEST =
-            "select temporal from cr_address_person ap\n" +
-                    "inner join cr_person p on p.person_id = ap.person_id\n" +
-                    "inner join cr_address a on a.address_id = ap.address_id\n" +
-                    "where\n" +
-                    "upper(p.sur_name COLLATE \"en_US.UTF-8\") = upper(? COLLATE \"en_US.UTF-8\") \n" +
-                    "and upper(p.given_name COLLATE \"en_US.UTF-8\") = upper(? COLLATE \"en_US.UTF-8\") \n" +
-                    "and upper(patronymic COLLATE \"en_US.UTF-8\") = upper(? COLLATE \"en_US.UTF-8\") \n" +
-                    "and p.date_of_birth = ?\n" +
-                    "and a.street_code = ? \n" +
-                    "and upper(a.building COLLATE \"en_US.UTF-8\") = upper(? COLLATE \"en_US.UTF-8\") \n" +
-                    "and upper(extension COLLATE \"en_US.UTF-8\") = upper(? COLLATE \"en_US.UTF-8\") \n" +
-                    "and upper(a.apartment COLLATE \"en_US.UTF-8\") = upper(? COLLATE \"en_US.UTF-8\")";
+            "select temporal from cr_address_person ap " +
+                    "inner join cr_person p on p.person_id = ap.person_id " +
+                    "inner join cr_address a on a.address_id = ap.address_id " +
+                    "where " +
+                    "where "+
+                    "and upper(p.sur_name COLLATE \"C\") = upper(? COLLATE \"C\")  " +
+                    "and upper(p.given_name COLLATE \"C\") = upper(? COLLATE \"C\")  " +
+                    "and upper(patronymic COLLATE \"C\") = upper(? COLLATE \"C\")  " +
+                    "and p.date_of_birth = ? " +
+                    "and a.street_code = ?  " +
+                    "and upper(a.building COLLATE \"C\") = upper(? COLLATE \"C\") " +
+                    "and upper(extension COLLATE \"C\") = upper(? COLLATE \"C\")  " +
+                    "and upper(a.apartment COLLATE \"C\") = upper(? COLLATE \"C\")";
 
     public PersonResponse checkPerson(PersonRequest request) throws PersonCheckException {
         PersonResponse response = new PersonResponse();
 
         try (Connection con = getConnection();
              PreparedStatement stmt = con.prepareStatement(SQL_REQUEST)) {
+
+            stmt.setString(1, request.getSurName());
+            stmt.setString(2, request.getGivenName());
+            stmt.setString(3, request.getPatronymic());
+            stmt.setDate(4, java.sql.Date.valueOf(request.getDateOfBirth()));
+            stmt.setInt(5, request.getStreetCode());
+            stmt.setString(6, request.getBuilding());
+            stmt.setString(7, request.getExtension());
+            stmt.setString(8, request.getApartment());
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -43,7 +50,8 @@ public class PersonCheckDao
         return response;
     }
 
-    private Connection getConnection() {
-        return null;
+    private Connection getConnection() throws SQLException {
+        return DriverManager.getConnection("jdbc:postgresql://localhost/city_register", "postgres", "postgres");
+
     }
 }
