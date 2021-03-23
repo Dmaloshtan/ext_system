@@ -1,11 +1,23 @@
 package home.javacourse.domain;
 
 import javax.persistence.*;
+import java.time.LocalDate;
+import java.util.List;
 
+@Table(name = "ro_person")
 @Entity
-@Table(name = "person")
-public class Person {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "sex",discriminatorType = DiscriminatorType.INTEGER)
 
+@NamedQueries({
+        @NamedQuery(name = "Person.findPersons",
+        query = "SELECT p FROM Person p " +
+                "LEFT JOIN FETCH p.passports ps " +
+                "LEFT JOIN FETCH p.birthCertificate bs " +
+        "WHERE p.personId = :personId")
+})
+
+public class Person {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "person_id")
@@ -14,6 +26,14 @@ public class Person {
     private String firstName;
     @Column(name = "last_name")
     private String lastName;
+    @Column(name = "patronymic")
+    private String patronymic;
+    @Column(name = "date_birth")
+    private LocalDate dateOfBirth;
+    @OneToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.LAZY, mappedBy = "person")
+    private BirthCertificate birthCertificate;
+    @OneToMany(cascade = {CascadeType.REFRESH}, fetch = FetchType.LAZY, mappedBy = "person")
+    private List<Passport> passports;
 
     public Long getPersonId() {
         return personId;
@@ -39,12 +59,48 @@ public class Person {
         this.lastName = lastName;
     }
 
+    public String getPatronymic() {
+        return patronymic;
+    }
+
+    public void setPatronymic(String patronymic) {
+        this.patronymic = patronymic;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public BirthCertificate getBirthCertificate() {
+        return birthCertificate;
+    }
+
+    public void setBirthCertificate(BirthCertificate birthCertificate) {
+        this.birthCertificate = birthCertificate;
+    }
+
+    public List<Passport> getPassports() {
+        return passports;
+    }
+
+    public void setPassports(List<Passport> passports) {
+        this.passports = passports;
+    }
+
     @Override
     public String toString() {
         return "Person{" +
                 "personId=" + personId +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
+                ", patronymic='" + patronymic + '\'' +
+                ", dateOfBirth=" + dateOfBirth +
+                ", birthCertificate=" + birthCertificate +
+                ", passports=" + passports +
                 '}';
     }
 }
